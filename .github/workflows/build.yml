@@ -33,8 +33,13 @@ jobs:
           mkdir -p app/src/main/assets
           mkdir -p app/src/main/res/values
 
-          # ফাইলগুলো সাজিয়ে নেওয়া
-          [ -f index.html ] && cp index.html app/src/main/assets/
+          # অফলাইন ফাইল বা index.html কে অ্যাপে বসানো
+          if [ -f bill-khata-offline.html ]; then
+            cp bill-khata-offline.html app/src/main/assets/index.html
+          elif [ -f index.html ]; then
+            cp index.html app/src/main/assets/index.html
+          fi
+
           [ -f MainActivity.java ] && cp MainActivity.java app/src/main/java/com/billkhata/app/
           [ -f AndroidManifest.xml ] && cp AndroidManifest.xml app/src/main/AndroidManifest.xml
 
@@ -109,5 +114,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: MahaPetuk-BillKhata-APK
+          name: MahaPetuk-Offline-APK
           path: app/build/outputs/apk/debug/app-debug.apk
