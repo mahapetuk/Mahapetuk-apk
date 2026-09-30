@@ -22,18 +22,23 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Prepare Complete Android Project
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.7
+
+      - name: Prepare Project Files
         run: |
           mkdir -p app/src/main/java/com/billkhata/app
           mkdir -p app/src/main/assets
           mkdir -p app/src/main/res/values
 
-          # কোড ফাইল ঠিকমতো রাখা
+          # ফাইলগুলো সাজিয়ে নেওয়া
           [ -f index.html ] && cp index.html app/src/main/assets/
           [ -f MainActivity.java ] && cp MainActivity.java app/src/main/java/com/billkhata/app/
-          [ -f AndroidManifest.xml ] && cp AndroidManifest.xml app/src/main/
+          [ -f AndroidManifest.xml ] && cp AndroidManifest.xml app/src/main/AndroidManifest.xml
 
-          # strings.xml
+          # App Name
           cat << 'EOF' > app/src/main/res/values/strings.xml
           <resources>
               <string name="app_name">মহা পেটুক</string>
@@ -60,21 +65,23 @@ jobs:
           include ':app'
           EOF
 
-          # Root build.gradle
+          # build.gradle (Root)
           cat << 'EOF' > build.gradle
           plugins {
-              id 'com.android.application' version '8.1.4' apply false
+              id 'com.android.application' version '8.5.2' apply false
           }
           EOF
 
-          # App build.gradle
+          # app/build.gradle
           cat << 'EOF' > app/build.gradle
           plugins {
               id 'com.android.application'
           }
+
           android {
               namespace 'com.billkhata.app'
               compileSdk 34
+
               defaultConfig {
                   applicationId "com.billkhata.app"
                   minSdk 21
@@ -82,19 +89,22 @@ jobs:
                   versionCode 1
                   versionName "1.0"
               }
+
               buildTypes {
                   release {
                       minifyEnabled false
                   }
               }
+
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
           }
           EOF
 
-      - name: Setup and Run Gradle
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          gradle-version: 8.5
-          arguments: :app:assembleDebug
+      - name: Build Debug APK
+        run: gradle assembleDebug --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
